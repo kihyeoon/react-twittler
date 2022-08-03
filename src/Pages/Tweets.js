@@ -4,17 +4,25 @@ import Footer from "../Footer";
 import Tweet from "../Components/Tweet";
 import "./Tweets.css";
 import dummyTweets from "../static/dummyData";
+import uuid from "react-uuid";
 
 const Tweets = () => {
   // TODO : 새로 트윗을 작성하고 전송할 수 있게 useState를 적절히 활용하세요.
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [data, setData] = useState(dummyTweets);
+  const [filteredData, setFilteredData] = useState(data);
+  const [selected, setSelected] = useState(false);
+
+  const usrnames = data.map((el) => el.username);
+  const set = new Set(usrnames);
+  const uniqueUsernames = [...set];
+
   const handleButtonClick = (event) => {
     const tweet = {};
     // TODO : Tweet button 엘리먼트 클릭시 작동하는 함수를 완성하세요.
     // 트윗 전송이 가능하게 작성해야 합니다.
-    tweet.id = dummyTweets.length + 1;
+    tweet.id = uuid();
     tweet.username = name;
     tweet.picture = "https://randomuser.me/api/portraits/men/98.jpg";
     // dummyTweets.filter(function (el) {
@@ -24,6 +32,7 @@ const Tweets = () => {
     tweet.createdAt = new Date().toLocaleDateString("ko-kr");
     tweet.updatedAt = new Date().toLocaleDateString("ko-kr");
     setData([tweet, ...data]);
+    setFilteredData([tweet, ...filteredData]);
   };
 
   const handleChangeUser = (event) => {
@@ -34,6 +43,18 @@ const Tweets = () => {
   const handleChangeMsg = (event) => {
     // TODO : Tweet textarea 엘리먼트에 입력 시 작동하는 함수를 완성하세요.
     setText(event.target.value);
+  };
+
+  const handleSelect = (event) => {
+    setFilteredData(
+      data.filter((tweet) => tweet.username === event.target.value)
+    );
+    setSelected(event.target.value === "Usernames" ? false : true);
+  };
+
+  const onRemove = (id) => {
+    setData(data.filter((tweet) => tweet.id !== id));
+    setFilteredData(filteredData.filter((tweet) => tweet.id !== id));
   };
 
   return (
@@ -79,15 +100,31 @@ const Tweets = () => {
           </div>
         </div>
       </div>
-      <div className="tweet__selectUser"></div>
+      <div className="tweet__selectUser">
+        <select id="selectBox" onChange={handleSelect}>
+          <option>Usernames</option>
+          {uniqueUsernames.map((el) => (
+            <option key={el}>{el}</option>
+          ))}
+        </select>
+      </div>
       <ul className="tweets">
-        {/* TODO : 하나의 트윗이 아니라, 주어진 트윗 목록(dummyTweets) 갯수에 맞게 보여줘야 합니다. */}
-        {data.map((tweet) => {
-          return <Tweet tweet={tweet} key={tweet.id} />;
-        })}
+        {
+          selected
+            ? filteredData.map((tweet) => {
+                return (
+                  <Tweet tweet={tweet} key={tweet.id} onRemove={onRemove} />
+                );
+              })
+            : data.map((tweet) => {
+                return (
+                  <Tweet tweet={tweet} key={tweet.id} onRemove={onRemove} />
+                );
+              }) //
+        }
       </ul>
       <Footer />
-    </> 
+    </>
   );
 };
 
